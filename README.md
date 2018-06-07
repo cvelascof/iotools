@@ -1,2 +1,2 @@
 # iotools
-Reading and writing of 2d precipitation fields.
+Reading and writing 2d precipitation fields.
