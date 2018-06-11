@@ -28,23 +28,30 @@ def find_by_date(date, root_path, path_fmt, fn_pattern, fn_ext, timestep,
   
   Returns
   -------
-  out : str or list
+  out : tuple
     If num_prev_files=0, return a pair containing the found file name and the 
-    corresponding timestamp as a datetime.datetime object. Otherwise, return a 
-    list of such pairs. The list is sorted in descending order with respect to 
-    timestamp.
+    corresponding timestamp as a datetime.datetime object. Otherwise, return 
+    a tuple of two lists, the first one for the file names and the second one 
+    for the correspondign timestemps. The lists are sorted in descending order 
+    with respect to timestamp.
   """
-  result = []
+  filenames  = []
+  timestamps = []
   
   for i in xrange(num_prev_files+1):
     curdate = date - timedelta(minutes=i*timestep)
     fn = _find_matching_filename(curdate, root_path, path_fmt, fn_pattern, fn_ext)
     if fn is not None:
-      result.append((fn, curdate))
+      filenames.append(fn)
+      timestamps.append(curdate)
     else:
-      result.append(None)
+      filenames.append(None)
+      timestamps.append(None)
   
-  return result if num_prev_files > 0 else result[0]
+  if num_prev_files > 0:
+    return (filenames, timestamps)
+  else:
+    return (filenames[0], timestamps[0])
 
 def _find_matching_filename(date, root_path, path_fmt, fn_pattern, fn_ext):
   path = _generate_path(date, root_path, path_fmt)
