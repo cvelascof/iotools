@@ -197,11 +197,6 @@ def _read_aqc_geodata():
     projdef += " +no_defs"
     #
     geodata["projection"] = projdef
-    
-    geodata["ll_lon"] = None
-    geodata["ll_lat"] = ll_lat
-    geodata["ur_lon"] = ur_lon
-    geodata["ur_lat"] = ur_lat
 
     geodata["x1"] = 255000
     geodata["y1"] = 160000
