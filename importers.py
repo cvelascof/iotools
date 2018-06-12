@@ -53,8 +53,8 @@ def read_pgm(filename, gzipped=False):
     Returns
     -------
     out : tuple
-        A two-element tuple containing the precipitation field read from the PGM 
-        file and the associated georeferencing data.
+        A three-element tuple containing the precipitation field read from the PGM 
+        file and the associated georeferencing data and metadata.
     """
     metadata = _read_pgm_metadata(filename, gzipped=gzipped)
 
