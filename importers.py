@@ -1,4 +1,28 @@
-"""Methods for reading files containing 2d precipitation fields."""
+"""Methods for reading files containing 2d precipitation fields.
+
+The methods in this module implement the following interface:
+
+  read_xxx(filename, optional arguments)
+
+where xxx is the name (or abbreviation) of the file format and filename is the 
+name of the input file.
+
+The output of each method is a three-element tuple containing the two-dimensional 
+precipitation field and georeferencing and metadata dictionaries.
+
+The geodata dictionary contains the following mandatory key-value pairs:
+  projection   PROJ.4-compatible projection definition
+  x1           x-coordinate of the lower-left corner of the data raster
+  y1           y-coordinate of the lower-left corner of the data raster
+  x2           x-coordinate of the upper-right corner of the data raster
+  y2           y-coordinate of the upper-right corner of the data raster
+  xpixelsize   grid resolution in x-direction (meters)
+  ypixelsize   grid resolution in y-direction (meters)
+  yorigin      a string specifying the location of the first element in
+               the data raster w.r.t. y-axis:
+               'upper' = upper border
+               'lower' = lower border
+"""
 
 import gzip
 from matplotlib.pyplot import imread
@@ -34,27 +58,27 @@ def read_pgm(filename, dtype=float, gzipped=False, convert_dbz_to_r=True,
         file and the associated georeferencing data.
     """
     metadata = _read_pgm_metadata(filename, gzipped=gzipped)
-  
+
     if gzipped == False:
         R = imread(filename)
     else:
         R = imread(gzip.open(filename, 'r'))
     geodata = _read_pgm_geodata(metadata)
-  
+
     MASK = R == metadata["missingval"]
     R = R.astype(dtype)
     R[MASK] = np.nan
     R = (R - 64.0) / 2.0
     if convert_dbz_to_r:
         R = pow(pow(10.0, R / 10.0) / dbz_to_r_a, 1.0 / dbz_to_r_b)
-  
-    return R, geodata
+
+    return R, geodata, metadata
 
 def _read_pgm_geodata(metadata):
     geodata = {}
-  
+
     projdef = ""
-  
+
     if metadata["type"][0] != "stereographic":
         raise ValueError("unknown projection %s" % metadata["type"][0])
     projdef += "+proj=stere "
@@ -76,11 +100,6 @@ def _read_pgm_geodata(metadata):
     pr = pyproj.Proj(projdef)
     x1,y1 = pr(ll_lon, ll_lat)
     x2,y2 = pr(ur_lon, ur_lat)
-
-    geodata["ll_lon"] = ll_lon
-    geodata["ll_lat"] = ll_lat
-    geodata["ur_lon"] = ur_lon
-    geodata["ur_lat"] = ur_lat
 
     geodata["x1"] = x1
     geodata["y1"] = y1
@@ -178,6 +197,11 @@ def _read_aqc_geodata():
     projdef += " +no_defs"
     #
     geodata["projection"] = projdef
+    
+    geodata["ll_lon"] = None
+    geodata["ll_lat"] = ll_lat
+    geodata["ur_lon"] = ur_lon
+    geodata["ur_lat"] = ur_lat
 
     geodata["x1"] = 255000
     geodata["y1"] = 160000
