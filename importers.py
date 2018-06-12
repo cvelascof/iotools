@@ -2,7 +2,8 @@
 
 import gzip
 from matplotlib.pyplot import imread
-from numpy import nan
+import numpy as np
+from PIL import Image
 import pyproj
 
 def read_pgm(filename, dtype=float, gzipped=False, convert_dbz_to_r=True, 
@@ -42,7 +43,7 @@ def read_pgm(filename, dtype=float, gzipped=False, convert_dbz_to_r=True,
   
     MASK = R == metadata["missingval"]
     R = R.astype(dtype)
-    R[MASK] = nan
+    R[MASK] = np.nan
     R = (R - 64.0) / 2.0
     if convert_dbz_to_r:
         R = pow(pow(10.0, R / 10.0) / dbz_to_r_a, 1.0 / dbz_to_r_b)
@@ -119,3 +120,73 @@ def _read_pgm_metadata(filename, gzipped=False):
     f.close()
   
     return metadata
+    
+def read_aqc(filename):
+    """Read a 8-bit gif radar reflectivity composite (AQC) from the MeteoSwiss 
+    archive.
+
+    Parameters
+    ----------
+    filename : str
+        Name of the file to read from.
+    dtype : type
+        The output datatype for the dataset that is read from the file.
+    Returns
+    -------
+    out : tuple
+        A three-element tuple containing the precipitation field in mm h-1 read 
+        from the AQC file, the associated georeferencing data and some metadata.
+    """
+    metadata = {}
+    geodata = _read_aqc_geodata()
+    
+    B = Image.open(filename)
+    B = np.array(B, dtype=int)
+    
+    # generate lookup table in mmh-1
+    # valid for AQC product only
+    lut = np.zeros(256)
+    A = 316.0; b = 1.5
+    for i in xrange(256):
+        if (i < 2) or (i > 250 and i < 255):
+            lut[i] = 0.0
+        elif (i == 255):
+            lut[i] = np.nan
+        else:
+            lut[i] = (10.**((i - 71.2)/20.0)/A)**(1.0/b)*60/5
+            
+    # apply lookup table [mm h-1]
+    R = lut[B]
+    
+    return R, geodata, metadata
+    
+def _read_aqc_geodata():
+    geodata = {}
+    
+    projdef = ""
+    # These are all hard-coded because the projection definition is missing from the 
+    # gif files.
+    projdef += "+proj=somerc "
+    projdef += " +lon_0=7.439583333333333"
+    projdef += " +lat_0=46.95240555555556"
+    projdef += " +k_0=1"
+    projdef += " +x_0=600000"
+    projdef += " +y_0=200000"
+    projdef += " +ellps=bessel"
+    projdef += " +towgs84=674.374,15.056,405.346,0,0,0,0"
+    projdef += " +units=m"
+    projdef += " +no_defs"
+    #
+    geodata["projection"] = projdef
+
+    geodata["x1"] = 255000
+    geodata["y1"] = 160000
+    geodata["x2"] = 965000
+    geodata["y2"] = 480000
+
+    geodata["xpixelsize"] = 1000
+    geodata["ypixelsize"] = 1000
+
+    geodata["yorigin"] = "upper"
+  
+    return geodata
