@@ -30,8 +30,7 @@ import numpy as np
 from PIL import Image
 import pyproj
 
-def read_pgm(filename, dtype=float, gzipped=False, convert_dbz_to_r=True, 
-             dbz_to_r_a=223.0, dbz_to_r_b=1.53):
+def read_pgm(filename, gzipped=False):
     """Read a 8-bit PGM radar reflectivity composite from the FMI archive and 
     optionally convert the reflectivity values to precipitation rates.
 
@@ -66,11 +65,8 @@ def read_pgm(filename, dtype=float, gzipped=False, convert_dbz_to_r=True,
     geodata = _read_pgm_geodata(metadata)
 
     MASK = R == metadata["missingval"]
-    R = R.astype(dtype)
     R[MASK] = np.nan
     R = (R - 64.0) / 2.0
-    if convert_dbz_to_r:
-        R = pow(pow(10.0, R / 10.0) / dbz_to_r_a, 1.0 / dbz_to_r_b)
 
     return R, geodata, metadata
 
