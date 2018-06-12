@@ -1,4 +1,30 @@
-"""Methods for reading files containing 2d precipitation fields."""
+"""Methods for reading files containing 2d precipitation fields.
+
+The methods in this module implement the following interface:
+
+  read_xxx(filename, optional arguments)
+
+where xxx is the name (or abbreviation) of the file format and filename is the 
+name of the input file.
+
+The output of each method is a three-element tuple containing the two-dimensional 
+precipitation field and georeferencing and metadata dictionaries.
+
+The geodata dictionary contains the following mandatory key-value pairs:
+  ll_lon       longitude of the lower-left corner of the data raster
+  ll_lat       latitude of the lower-left corner of the data raster
+  ur_lon       longitude of the upper-right corner of the data raster
+  ur_lat       latitude of the upper-right corner of the data raster
+  projection   PROJ.4-compatible projection definition
+  xpixelsize   grid resolution in x-direction (meters)
+  ypixelsize   grid resolution in y-direction (meters)
+  yorigin      a string specifying the origin of the y-axis:
+               'upper' = upper border
+               'lower' = lower border
+
+The metadata dictionary contains the following mandatory key-value pairs:
+  missingval   value to indicate missing data
+"""
 
 import gzip
 from matplotlib.pyplot import imread
@@ -33,27 +59,27 @@ def read_pgm(filename, dtype=float, gzipped=False, convert_dbz_to_r=True,
         file and the associated georeferencing data.
     """
     metadata = _read_pgm_metadata(filename, gzipped=gzipped)
-  
+
     if gzipped == False:
         R = imread(filename)
     else:
         R = imread(gzip.open(filename, 'r'))
     geodata = _read_pgm_geodata(metadata)
-  
+
     MASK = R == metadata["missingval"]
     R = R.astype(dtype)
     R[MASK] = nan
     R = (R - 64.0) / 2.0
     if convert_dbz_to_r:
         R = pow(pow(10.0, R / 10.0) / dbz_to_r_a, 1.0 / dbz_to_r_b)
-  
-    return R, geodata
+
+    return R, geodata, metadata
 
 def _read_pgm_geodata(metadata):
     geodata = {}
-  
+
     projdef = ""
-  
+
     if metadata["type"][0] != "stereographic":
         raise ValueError("unknown projection %s" % metadata["type"][0])
     projdef += "+proj=stere "
