@@ -38,18 +38,9 @@ def read_pgm(filename, gzipped=False):
     ----------
     filename : str
         Name of the file to read from.
-    dtype : type
-        The output datatype for the dataset that is read from the file.
     gzipped : bool
         If True, the input file is treated as a compressed gzip file.
-    convert_dbz_to_r : bool
-        If True, the reflectivities Z are converted to precipitation rates R via 
-        the formula Z=a*R^b.
-    dbz_to_r_a : float
-        Multiplier for the Z->R conversion.
-    dbz_to_r_b : float
-        Exponent for the Z->R conversion.
-  
+
     Returns
     -------
     out : tuple
@@ -63,8 +54,9 @@ def read_pgm(filename, gzipped=False):
     else:
         R = imread(gzip.open(filename, 'r'))
     geodata = _read_pgm_geodata(metadata)
-
+    
     MASK = R == metadata["missingval"]
+    R = R.astype(float)
     R[MASK] = np.nan
     R = (R - 64.0) / 2.0
 
