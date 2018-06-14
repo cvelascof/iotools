@@ -21,7 +21,7 @@ def read_timeseries(inputfns, importer, **kwargs):
         the associated georeferencing data and metadata.
     """
     R = []
-    for ifn in inputfns[0][::-1]:
+    for ifn in inputfns[0]:
         R_, geodata, metadata = importer(ifn, **kwargs)
         R.append(R_)
 
