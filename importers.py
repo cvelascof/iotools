@@ -44,8 +44,8 @@ def read_pgm(filename, gzipped=False):
     Returns
     -------
     out : tuple
-        A three-element tuple containing the precipitation field read from the PGM 
-        file and the associated georeferencing data and metadata.
+        A three-element tuple containing the reflectivity field in dBZ read from 
+        the PGM file and the associated georeferencing data and metadata.
     """
     metadata = _read_pgm_metadata(filename, gzipped=gzipped)
 
@@ -142,7 +142,8 @@ def read_aqc(filename):
     -------
     out : tuple
         A three-element tuple containing the precipitation field in mm h-1 read 
-        from the AQC file, the associated georeferencing data and some metadata.
+        from a MeteoSwiss AQC file, the associated georeferencing data and some 
+        metadata.
     """
     metadata = {}
     geodata = _read_aqc_geodata()
