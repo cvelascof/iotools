@@ -43,11 +43,8 @@ def find_by_date(date, root_path, path_fmt, fn_pattern, fn_ext, timestep,
     for i in xrange(num_prev_files+1):
         curdate = date - timedelta(minutes=i*timestep)
         fn = _find_matching_filename(curdate, root_path, path_fmt, fn_pattern, fn_ext)
-        if fn is not None:
-            filenames.append(fn)
-        else:
-            filenames.append(None)
-    
+        filenames.append(fn)
+
         timestamps.append(curdate)
   
     if num_prev_files > 0:
